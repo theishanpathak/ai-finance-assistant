@@ -19,7 +19,7 @@ public class ChatController {
 
     @PostMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<String> chatStream(@RequestBody ChatRequest request){
-        return financeService.getResponseStream(request.message());
+        return financeService.getResponseStream(request.message(), request.sessionID());
     }
 
 }
