@@ -1,6 +1,5 @@
 package com.example.ai_finance_assistant.service;
 
-import com.example.ai_finance_assistant.dto.ConversationResponse;
 import com.example.ai_finance_assistant.dto.openai.OpenAIMessage;
 import com.example.ai_finance_assistant.dto.openai.OpenAIRequest;
 import com.example.ai_finance_assistant.entity.Conversation;
@@ -20,12 +19,17 @@ public class FinanceService {
     private final ConversationRepository conversationRepository;
     private final MessageRepository messageRepository;
 
+    private final TokenCounterService tokenCounterService;
+
+    private final int MAX_TOKENS = 2000;
+
     public FinanceService(OpenAIClient openAIClient,
                           ConversationRepository conversationRepository,
-                          MessageRepository messageRepository) {
+                          MessageRepository messageRepository, TokenCounterService tokenCounterService) {
         this.openAIClient = openAIClient;
         this.conversationRepository = conversationRepository;
         this.messageRepository = messageRepository;
+        this.tokenCounterService = tokenCounterService;
     }
 
 
@@ -58,12 +62,60 @@ public class FinanceService {
     public Message saveMessage(Long conversationID, String role, String content){
         Conversation conversation = conversationRepository.findById(conversationID)
                 .orElseThrow(() -> new RuntimeException("Conversation not valid"));
-        Message message = new Message(role, content, conversation);
+        int tokenCount = tokenCounterService.countTokens(content);
+        Message message = new Message(role, content, conversation, tokenCount);
         return messageRepository.save(message);
     }
 
 
+    //loop through all the messages and give back the total number of tokens
+    private int calculateTotalTokens(List<Message> messages){
+        int total = 0;
 
+        for(Message msg: messages){
+            total += msg.getTokens();
+        }
+        return total;
+    }
+
+
+    private void summarizeHistory(List<Message> history) {
+        System.out.println("Summary Triggered");
+        List<OpenAIMessage> messages = new ArrayList<>();
+        for(Message msg: history){
+            messageRepository.delete(msg);
+            messages.add(new OpenAIMessage(msg.getRole(), msg.getContent()));
+        }
+        messages.add(new OpenAIMessage("system",
+                "You are summarizing the conversation so it can be used as memory for future turns. " +
+                        "- Keep it concise, around 120 tokens, max 150.\n" +
+                        "- Focus on key points:\n" +
+                        "  - User goals and intent\n" +
+                        "  - Decisions made\n" +
+                        "  - Constraints or preferences\n" +
+                        "  - Open questions or unresolved items\n" +
+                        "- Use bullets or short numbered lists to organize information.\n" +
+                        "- Maintain the tone and context of the conversation for continuity.\n" +
+                        "- Do NOT include exact dialogue, repeated text, or unnecessary details.\n" +
+                        "- Format as plain text suitable to be injected back as conversation history."
+        ));
+
+        OpenAIRequest request = new OpenAIRequest(
+                "gpt-4o-mini",
+                messages,
+                150,
+                true
+        );
+
+        StringBuilder assistantResponse = new StringBuilder();
+        openAIClient.createChatCompletion(request)
+                .doOnNext(chunk -> assistantResponse.append(chunk))//collect chunks
+                .doOnComplete(() -> {
+                    //save assistant response after streaming completes
+                    saveMessage(history.get(0).getConversation().getId(), "assistant", assistantResponse.toString());
+
+                });
+    }
 
 
     public Flux<String> getResponseStream(String userMessage, String sessionId){
@@ -73,6 +125,14 @@ public class FinanceService {
 
         //load conversation history
         List<Message> history = loadConversationHistory(conversation.getId());
+
+        //calculate total tokens, if more than MAX go ahead and reduce the history, but first count
+        //and if still doesn't come within the limit, go ahead and truncate more
+        int totalToken = calculateTotalTokens(history);
+        if(totalToken > MAX_TOKENS){
+            summarizeHistory(history);
+        }
+
 
         //saving user message
         saveMessage(conversation.getId(), "user", userMessage);
@@ -116,4 +176,8 @@ public class FinanceService {
                     saveMessage(conversation.getId(), "assistant", assistantResponse.toString());
                 });
     }
+
+
+
+
 }

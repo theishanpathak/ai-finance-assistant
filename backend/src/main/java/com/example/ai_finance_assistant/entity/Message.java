@@ -30,10 +30,11 @@ public class Message {
 
     public Message() {}
 
-    public Message(String role, String content, Conversation conversation) {
+    public Message(String role, String content, Conversation conversation, Integer tokens) {
         this.role = role;
         this.content = content;
         this.conversation = conversation;
+        this.tokens = tokens;
         this.createdAt = LocalDateTime.now();
     }
 
