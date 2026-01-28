@@ -65,14 +65,15 @@ function App() {
 
         buffer += decoder.decode(value, { stream: true });
         const events = buffer.split("\n\n");
-        buffer = events.pop();
+        buffer = events.pop() || "";
 
         for (const event of events) {
           const lines = event.split("\n")
 
           for (const line of lines) {
             if (!line.startsWith("data:")) continue;
-            const token = line.slice(5);
+            let token = line.slice(5);
+            if (token === "") token = "\n"; 
             assistantMessage += token;
             setResponse(assistantMessage);
           }
@@ -148,7 +149,7 @@ function App() {
         {response && (
           <div className="message assistant streaming">
             <div className="message-header">
-              <strong className="message-sender">AI Tutor</strong>
+              <strong className="message-sender">AI Finance</strong>
             </div>
             <div className="message-content">
               <ReactMarkdown remarkPlugins={[remarkGfm]}>

@@ -40,7 +40,6 @@ public class OpenAIClient {
         try {
             // Parse the raw JSON directly (no "data:" prefix)
             OpenAIStreamResponse response = objectMapper.readValue(jsonLine, OpenAIStreamResponse.class);
-
             if (response.choices() != null && !response.choices().isEmpty()) {
                 OpenAIStreamResponse.Delta delta = response.choices().get(0).delta();
                 if (delta != null && delta.content() != null) {
