@@ -21,7 +21,7 @@ public class FinanceService {
 
     private final TokenCounterService tokenCounterService;
 
-    private final int MAX_TOKENS = 2000;
+    private final int MAX_TOKENS = 1500;
 
     public FinanceService(OpenAIClient openAIClient,
                           ConversationRepository conversationRepository,
@@ -70,52 +70,37 @@ public class FinanceService {
 
     //loop through all the messages and give back the total number of tokens
     private int calculateTotalTokens(List<Message> messages){
-        int total = 0;
+        //declarative piece with stream
+        return messages.stream()
+                .mapToInt(Message::getTokens)
+                .sum();
+
+//        Classic way of doing it
+    /*
+      int total = 0;
 
         for(Message msg: messages){
             total += msg.getTokens();
-        }
-        return total;
+       }
+       return total;
+    */
     }
 
+    private List<Message> truncateHistory(List<Message> history, int totalTokens) {
+        System.out.println("Truncating history: " + history.size() + " messages and total tokens " + totalTokens);
+        List<Message> truncated = new ArrayList<>(history);
 
-    private void summarizeHistory(List<Message> history) {
-        System.out.println("Summary Triggered");
-        List<OpenAIMessage> messages = new ArrayList<>();
-        for(Message msg: history){
-            messageRepository.delete(msg);
-            messages.add(new OpenAIMessage(msg.getRole(), msg.getContent()));
+        while(totalTokens > MAX_TOKENS && truncated.size() > 1){
+            Message oldest = truncated.remove(0);
+            totalTokens -= oldest.getTokens();
+            System.out.println("Dropped messages, tokens now " + totalTokens);
         }
-        messages.add(new OpenAIMessage("system",
-                "You are summarizing the conversation so it can be used as memory for future turns. " +
-                        "- Keep it concise, around 120 tokens, max 150.\n" +
-                        "- Focus on key points:\n" +
-                        "  - User goals and intent\n" +
-                        "  - Decisions made\n" +
-                        "  - Constraints or preferences\n" +
-                        "  - Open questions or unresolved items\n" +
-                        "- Use bullets or short numbered lists to organize information.\n" +
-                        "- Maintain the tone and context of the conversation for continuity.\n" +
-                        "- Do NOT include exact dialogue, repeated text, or unnecessary details.\n" +
-                        "- Format as plain text suitable to be injected back as conversation history."
-        ));
 
-        OpenAIRequest request = new OpenAIRequest(
-                "gpt-4o-mini",
-                messages,
-                150,
-                true
-        );
+        System.out.println("Kept " + truncated.size() + " of" + history.size() + " messages");
 
-        StringBuilder assistantResponse = new StringBuilder();
-        openAIClient.createChatCompletion(request)
-                .doOnNext(chunk -> assistantResponse.append(chunk))//collect chunks
-                .doOnComplete(() -> {
-                    //save assistant response after streaming completes
-                    saveMessage(history.get(0).getConversation().getId(), "assistant", assistantResponse.toString());
-
-                });
+        return truncated;
     }
+
 
 
     public Flux<String> getResponseStream(String userMessage, String sessionId){
@@ -123,14 +108,12 @@ public class FinanceService {
         //first find or create a new conversation
         Conversation conversation = findOrCreateConversation(sessionId);
 
-        //load conversation history
+        //load conversation history and truncate if necessary
         List<Message> history = loadConversationHistory(conversation.getId());
-
-        //calculate total tokens, if more than MAX go ahead and reduce the history, but first count
-        //and if still doesn't come within the limit, go ahead and truncate more
         int totalToken = calculateTotalTokens(history);
+
         if(totalToken > MAX_TOKENS){
-            summarizeHistory(history);
+            history = truncateHistory(history, totalToken); //truncate history
         }
 
 
@@ -141,15 +124,19 @@ public class FinanceService {
         List<OpenAIMessage> messages = new ArrayList<>();
 
         messages.add(new OpenAIMessage("system",
-                "You are a finance tutor. Only answer finance-related questions. " +
-                        "Provide clear explanations using proper Markdown formatting. " +
-                        "- Use numbered lists for step-by-step instructions.\n" +
-                        "- Use bullets for examples or additional points.\n" +
-                        "- Use **bold** for key terms or concepts.\n" +
-                        "- Avoid complex math or formulas in LaTeX; use plain text instead.\n" +
-                        "If asked non-finance questions, politely redirect to finance topics.\n" +
-                        "You may answer questions about earlier parts of the conversation only if they are related to finance or financial goals."
-                ));
+                "You are an expert Finance Tutor. Only address finance-related topics. " +
+                        "If asked non-finance questions, politely redirect to financial learning goals.\n\n" +
+
+                        "FORMATTING & MATH:\n" +
+                        "- Numbered lists for steps; bullets for examples.\n" +
+                        "- **Bold** key terms. Use plain text for formulas (no LaTeX).\n\n" +
+
+                        "OUTPUT CONSTRAINTS (CRITICAL):\n" +
+                        "- LIMIT: Keep your total response under 300 words (roughly 400-500 tokens).\n" +
+                        "- COMPLETION: Ensure every response ends with a conclusive summary or a final closing sentence. " +
+                        "Never stop mid-thought or mid-explanation.\n" +
+                        "- CONCISENESS: Prioritize high-impact information to ensure the full explanation fits within the limit."
+        ));
 
         //add conversation history
         for(Message msg: history){

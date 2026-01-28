@@ -1,12 +1,14 @@
 import React, { useEffect, useState, useRef } from 'react';
-import ReactMarkDown from 'react-markdown';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 function App() {
   const [message, setMessage] = useState('');
   const [chatHistory, setChatHistory] = useState([]); //
   const [response, setResponse] = useState('');
   const [loading, setLoading] = useState(false);
-  const [sessionID, setSessionID] = useState('')
+  const [sessionID, setSessionID] = useState('');
+  const [copyAlert, setCopyAlert] = useState(false);
 
   const chatEndRef = useRef(null);
 
@@ -25,18 +27,25 @@ function App() {
     setMessage('');
   };
 
+  const handleCopy = (content) => {
+    navigator.clipboard.writeText(content);
+    setCopyAlert(true);
+    setTimeout(() => setCopyAlert(false), 2000);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!message.trim()) return;
 
     const userMessage = message;
+    const timestamp = new Date().toISOString();
     setMessage('');
     setLoading(true);
     setResponse('');
 
     //user message to the chat
-    setChatHistory(prev => [...prev, { role: "user", content: userMessage }]);
+    setChatHistory(prev => [...prev, { role: "user", content: userMessage, timestamp: timestamp }]);
 
     try {
       const res = await fetch('http://localhost:8080/api/chat/stream', {
@@ -90,88 +99,80 @@ function App() {
     setLoading(false);
   };
 
+  const formatTime = (timestamp) => {
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
   return (
-    <div style={{ maxWidth: '800px', margin: '0 auto', padding: '20px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+    <div className="app-container">
+      {copyAlert && <div className="copy-alert">Copied to clipboard!</div>}
+      
+      <div className="header">
         <h1>Finance Assistant AI</h1>
-        <button onClick={handleNewConversation} style={{ padding: '8px 16px' }}>
+        <button onClick={handleNewConversation} className="new-chat-btn">
           New Conversation
         </button>
       </div>
 
-      {/* Chat History */}
-      <div style={{
-        maxHeight: '500px',
-        overflowY: 'auto',
-        marginBottom: '20px',
-        border: '1px solid #ddd',
-        borderRadius: '8px',
-        padding: '16px',
-        backgroundColor: '#fafafa'
-      }}>
+      <div className="chat-container">
         {chatHistory.map((msg, index) => (
-          <div key={index} style={{
-            marginBottom: '16px',
-            padding: '12px',
-            borderRadius: '8px',
-            backgroundColor: msg.role === 'user' ? '#e3f2fd' : '#f5f5f5',
-            border: msg.role === 'user' ? '1px solid #2196f3' : '1px solid #ddd'
-          }}>
-            <strong style={{ color: msg.role === 'user' ? '#1976d2' : '#424242' }}>
-              {msg.role === 'user' ? 'You' : 'AI Tutor'}:
-            </strong>
-            <div style={{ marginTop: '8px' }}>
-              <ReactMarkDown>{msg.content}</ReactMarkDown>
+          <div key={index} className={`message ${msg.role}`}>
+            <div className="message-header">
+              <strong className="message-sender">
+                {msg.role === 'user' ? 'You' : 'AI Finance'}
+              </strong>
+              {msg.role === 'user' && msg.timestamp && (
+                <span className="timestamp">{formatTime(msg.timestamp)}</span>
+              )}
             </div>
+            <div className="message-content">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {msg.content}
+              </ReactMarkdown>
+            </div>
+            {msg.role === 'assistant' && (
+              <button 
+                onClick={() => handleCopy(msg.content)} 
+                className="copy-btn"
+              >
+                Copy
+              </button>
+            )}
           </div>
         ))}
 
-        {/* Streaming Response */}
         {response && (
-          <div style={{
-            marginBottom: '16px',
-            padding: '12px',
-            borderRadius: '8px',
-            backgroundColor: '#f5f5f5',
-            border: '1px solid #ddd'
-          }}>
-            <strong style={{ color: '#424242' }}>AI Tutor:</strong>
-            <div style={{ marginTop: '8px' }}>
-              <ReactMarkDown>{response}</ReactMarkDown>
+          <div className="message assistant streaming">
+            <div className="message-header">
+              <strong className="message-sender">AI Tutor</strong>
+            </div>
+            <div className="message-content">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {response}
+              </ReactMarkdown>
             </div>
           </div>
         )}
         <div ref={chatEndRef} />
       </div>
 
-      {/* Input Form */}
-      <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '8px' }}>
+      <form onSubmit={handleSubmit} className="input-form">
         <input
           type="text"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           placeholder="Ask a finance question..."
-          style={{
-            flex: 1,
-            padding: '12px',
-            fontSize: '14px',
-            border: '1px solid #ddd',
-            borderRadius: '4px'
-          }}
+          className="message-input"
           disabled={loading}
         />
         <button
           type="submit"
           disabled={loading || !message.trim()}
-          style={{
-            padding: '12px 24px',
-            backgroundColor: loading ? '#ccc' : '#2196f3',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: loading ? 'not-allowed' : 'pointer',
-            fontSize: '14px'
-          }}
+          className="send-btn"
         >
           {loading ? 'Thinking...' : 'Send'}
         </button>
