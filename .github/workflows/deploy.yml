@@ -18,6 +18,9 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+      
+      - name: Install Heroku CLI
+        run: curl https://cli-assets.heroku.com/install.sh | sh
 
       - name: Deploy to Heroku
         uses: akhileshns/heroku-deploy@v3.13.15 
