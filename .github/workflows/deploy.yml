@@ -1,0 +1,22 @@
+name: Deploy Backend to Heroku
+
+on:
+  push:
+    branches:
+      - prod  # for prod branch only
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4 # codes from github
+
+      - name: Deploy to Heroku
+        uses: akhileshns/heroku-deploy@v3.13.15 
+        with:
+          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+          
+          heroku_app_name: "ai-finance-assistant" 
+          heroku_email: "pathakishan333@gmail.com"  
+          appdir: "backend"
