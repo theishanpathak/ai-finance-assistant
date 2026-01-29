@@ -4,6 +4,8 @@ import com.example.ai_finance_assistant.dto.openai.OpenAIMessage;
 import com.example.ai_finance_assistant.dto.openai.OpenAIRequest;
 import com.example.ai_finance_assistant.entity.Conversation;
 import com.example.ai_finance_assistant.entity.Message;
+import com.example.ai_finance_assistant.exception.RateLimitException;
+import com.example.ai_finance_assistant.exception.ServiceUnavailableException;
 import com.example.ai_finance_assistant.repository.ConversationRepository;
 import com.example.ai_finance_assistant.repository.MessageRepository;
 import org.springframework.stereotype.Service;
@@ -160,11 +162,9 @@ public class FinanceService {
                 .doOnNext(chunk -> assistantResponse.append(chunk))//collect chunks
                 .doOnComplete(() -> {
                     //save assistant response after streaming completes
-                    saveMessage(conversation.getId(), "assistant", assistantResponse.toString());
+                    if (assistantResponse.length() > 0) {
+                        saveMessage(conversation.getId(), "assistant", assistantResponse.toString());
+                    }
                 });
     }
-
-
-
-
 }
