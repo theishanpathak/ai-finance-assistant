@@ -3,6 +3,9 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import ErrorMessage from './ErrorMessage';
 
+
+const baseUrl = process.env.REACT_APP_API_URL || "http://localhost:8080";
+
 function App() {
   const [message, setMessage] = useState('');
   const [chatHistory, setChatHistory] = useState([]);
@@ -14,6 +17,7 @@ function App() {
   const [error, setError] = useState(null);
 
   const chatEndRef = useRef(null);
+
 
   //load or create sessionid and chat history
   useEffect(() => {
@@ -29,7 +33,7 @@ function App() {
 
       try {
         const res = await fetch(
-          `http://localhost:8080/api/chat/history/${id}`
+          `${baseUrl}/api/chat/history/${id}`
         );
         if (res.ok) {
           const history = await res.json();
@@ -92,7 +96,7 @@ function App() {
     }]);
 
     try {
-      const res = await fetch('http://localhost:8080/api/chat/stream', {
+      const res = await fetch(`${baseUrl}/api/chat/stream`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: userMessage, sessionID })
@@ -161,12 +165,7 @@ function App() {
   if (loadingHistory) {
     return <div className="loading">Loading conversation...</div>;
   }
-  
-  {error && (
-  <div style={{ background: 'red', color: 'white', padding: 10 }}>
-    ERROR STATE: {error.message}
-  </div>
-)}
+
 
   return (
     <div className="app-container">
