@@ -4,7 +4,8 @@ import remarkGfm from 'remark-gfm';
 import ErrorMessage from './ErrorMessage';
 
 
-const baseUrl = process.env.REACT_APP_API_URL || "http://localhost:8080";
+const rawBaseUrl = process.env.REACT_APP_API_URL || "http://localhost:8080";
+const baseUrl = rawBaseUrl.replace(/\/+$/, "");
 
 function App() {
   const [message, setMessage] = useState('');
