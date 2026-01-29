@@ -173,7 +173,7 @@ function App() {
       {copyAlert && <div className="copy-alert">Copied to clipboard!</div>}
 
       <div className="header">
-        <h1>Finance Assistant AI</h1>
+        <h1>FinAssist AI</h1>
         <button onClick={handleNewConversation} className="new-chat-btn">
           New Conversation
         </button>
@@ -189,7 +189,7 @@ function App() {
           <div key={index} className={`message ${msg.role}`}>
             <div className="message-header">
               <strong className="message-sender">
-                {msg.role === 'user' ? 'You' : 'AI Finance'}
+                {msg.role === 'user' ? 'You' : 'FinAssist AI'}
               </strong>
               {msg.role === 'user' && msg.timestamp && (
                 <span className="timestamp">{formatTime(msg.timestamp)}</span>
@@ -214,7 +214,7 @@ function App() {
         {response && (
           <div className="message assistant streaming">
             <div className="message-header">
-              <strong className="message-sender">AI Finance</strong>
+              <strong className="message-sender">FinAssist</strong>
             </div>
             <div className="message-content">
               <ReactMarkdown remarkPlugins={[remarkGfm]}>

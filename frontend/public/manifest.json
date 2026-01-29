@@ -1,6 +1,6 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "FinAssist",
+  "name": "FinAssist AI - Finance Tutor",
   "icons": [],
   "start_url": ".",
   "display": "standalone",

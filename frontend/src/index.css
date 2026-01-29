@@ -58,7 +58,7 @@ body {
   }
 }
 
-/* Error Banner */
+/* Error Banner - FIXED */
 .error-banner {
   background: rgba(255, 50, 50, 0.1);
   border-left: 4px solid #ff3232;
@@ -70,6 +70,7 @@ body {
   align-items: center;
   animation: slideDown 0.3s ease-out;
   backdrop-filter: blur(10px);
+  min-height: 48px; /* Ensures consistent height */
 }
 
 @keyframes slideDown {
@@ -89,10 +90,13 @@ body {
   gap: 8px;
   color: #ff6b6b;
   font-size: 14px;
+  flex: 1;
+  padding-right: 8px;
 }
 
 .error-icon {
   font-size: 18px;
+  flex-shrink: 0;
 }
 
 .dismiss-btn {
@@ -101,10 +105,15 @@ body {
   color: #999;
   cursor: pointer;
   font-size: 18px;
-  padding: 0;
-  width: 24px;
-  height: 24px;
+  padding: 4px;
+  min-width: 24px;
+  min-height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: color 0.2s;
+  flex-shrink: 0;
+  line-height: 1;
 }
 
 .dismiss-btn:hover {
@@ -119,6 +128,8 @@ body {
   margin-bottom: 20px;
   padding-bottom: 15px;
   border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .header h1 {
@@ -277,6 +288,8 @@ body {
   border-collapse: collapse;
   width: 100%;
   margin: 12px 0;
+  overflow-x: auto;
+  display: block;
 }
 
 .message-content th,
@@ -394,4 +407,183 @@ body {
 
 .chat-container::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 255, 136, 0.5);
+}
+
+/* ========================================= */
+/* MOBILE RESPONSIVE STYLES */
+/* ========================================= */
+
+@media screen and (max-width: 768px) {
+  .app-container {
+    padding: 12px;
+    height: 100dvh; /* Use dynamic viewport height for mobile browsers */
+  }
+
+  /* Header adjustments */
+  .header {
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+  }
+
+  .header h1 {
+    font-size: 22px;
+    margin: 0 auto;
+  }
+
+  .new-chat-btn {
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+
+  /* Error banner - ensure button stays visible */
+  .error-banner {
+    padding: 10px 12px;
+    margin-bottom: 12px;
+  }
+
+  .error-content {
+    font-size: 13px;
+    gap: 6px;
+  }
+
+  .error-icon {
+    font-size: 16px;
+  }
+
+  /* Chat container */
+  .chat-container {
+    padding: 12px;
+    margin-bottom: 12px;
+  }
+
+  /* Messages */
+  .message {
+    padding: 12px;
+    margin-bottom: 12px;
+    padding-right: 48px; /* Make room for copy button */
+  }
+
+  .message-sender {
+    font-size: 13px;
+  }
+
+  .timestamp {
+    font-size: 11px;
+  }
+
+  .message-content {
+    font-size: 14px;
+  }
+
+  /* Copy button adjustments for mobile */
+  .copy-btn {
+    top: 8px;
+    right: 8px;
+    padding: 5px 10px;
+    font-size: 11px;
+  }
+
+  /* Input form */
+  .input-form {
+    padding: 12px;
+    gap: 8px;
+  }
+
+  .message-input {
+    padding: 10px 12px;
+    font-size: 16px; /* Prevent zoom on iOS */
+  }
+
+  .send-btn {
+    padding: 10px 20px;
+    font-size: 13px;
+  }
+
+  /* Copy alert */
+  .copy-alert {
+    top: 12px;
+    right: 12px;
+    padding: 10px 18px;
+    font-size: 13px;
+  }
+
+  /* Markdown adjustments */
+  .message-content h1 {
+    font-size: 20px;
+  }
+
+  .message-content h2 {
+    font-size: 18px;
+  }
+
+  .message-content h3 {
+    font-size: 16px;
+  }
+
+  .message-content code {
+    font-size: 12px;
+  }
+
+  .message-content pre {
+    padding: 12px;
+    font-size: 12px;
+  }
+
+  .message-content table {
+    font-size: 13px;
+  }
+
+  .message-content th,
+  .message-content td {
+    padding: 6px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .app-container {
+    padding: 8px;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .header h1 {
+    font-size: 20px;
+  }
+
+  .new-chat-btn {
+    width: 100%;
+    padding: 10px;
+  }
+
+  .chat-container {
+    padding: 8px;
+  }
+
+  .message {
+    padding: 10px;
+    padding-right: 44px;
+  }
+
+  .input-form {
+    padding: 10px;
+    gap: 6px;
+  }
+
+  .message-input {
+    padding: 10px;
+  }
+
+  .send-btn {
+    padding: 10px 16px;
+    font-size: 12px;
+  }
+
+  /* Make scrollbar thinner on mobile */
+  .chat-container::-webkit-scrollbar {
+    width: 4px;
+  }
 }
