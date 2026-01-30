@@ -1,21 +1,23 @@
 package com.example.ai_finance_assistant.service;
 
-import com.example.ai_finance_assistant.dto.openai.OpenAIRequest;
-import com.example.ai_finance_assistant.dto.openai.OpenAIStreamResponse;
-import com.example.ai_finance_assistant.exception.InvalidRequestException;
-import com.example.ai_finance_assistant.exception.RateLimitException;
-import com.example.ai_finance_assistant.exception.ServiceUnavailableException;
+import java.time.Duration;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
+
+import com.example.ai_finance_assistant.dto.openai.OpenAIRequest;
+import com.example.ai_finance_assistant.dto.openai.OpenAIStreamResponse;
+import com.example.ai_finance_assistant.exception.InvalidRequestException;
+import com.example.ai_finance_assistant.exception.RateLimitException;
+import com.example.ai_finance_assistant.exception.ServiceUnavailableException;
+
 import reactor.core.publisher.Flux;
 import reactor.util.retry.Retry;
 import tools.jackson.databind.ObjectMapper;
-
-import java.time.Duration;
 
 
 @Service

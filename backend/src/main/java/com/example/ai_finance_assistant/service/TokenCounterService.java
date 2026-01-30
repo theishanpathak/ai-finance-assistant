@@ -1,11 +1,11 @@
 package com.example.ai_finance_assistant.service;
 
+import org.springframework.stereotype.Service;
+
 import com.knuddels.jtokkit.Encodings;
 import com.knuddels.jtokkit.api.Encoding;
 import com.knuddels.jtokkit.api.EncodingRegistry;
-import com.knuddels.jtokkit.api.IntArrayList;
 import com.knuddels.jtokkit.api.ModelType;
-import org.springframework.stereotype.Service;
 
 @Service
 public class TokenCounterService {

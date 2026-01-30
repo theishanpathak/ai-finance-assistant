@@ -1,19 +1,19 @@
 package com.example.ai_finance_assistant.service;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.stereotype.Service;
+
 import com.example.ai_finance_assistant.dto.openai.OpenAIMessage;
 import com.example.ai_finance_assistant.dto.openai.OpenAIRequest;
 import com.example.ai_finance_assistant.entity.Conversation;
 import com.example.ai_finance_assistant.entity.Message;
-import com.example.ai_finance_assistant.exception.RateLimitException;
-import com.example.ai_finance_assistant.exception.ServiceUnavailableException;
 import com.example.ai_finance_assistant.repository.ConversationRepository;
 import com.example.ai_finance_assistant.repository.MessageRepository;
-import org.springframework.stereotype.Service;
-import reactor.core.publisher.Flux;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import reactor.core.publisher.Flux;
 
 @Service
 public class FinanceService {
@@ -126,7 +126,7 @@ public class FinanceService {
         List<OpenAIMessage> messages = new ArrayList<>();
 
         messages.add(new OpenAIMessage("system",
-                "You are an expert Finance Tutor. Only address finance-related topics. " +
+                        "You are an expert Finance Tutor. Only address finance-related topics. " +
                         "If asked non-finance questions, politely redirect to financial learning goals.\n\n" +
 
                         "FORMATTING & MATH:\n" +
